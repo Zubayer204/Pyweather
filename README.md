@@ -1,2 +1,2 @@
 # Pyweather
-An weather forecast software using python
+A weather forecast software using python
