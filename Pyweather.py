@@ -2,10 +2,41 @@ import PySimpleGUI as sg
 import requests, json
 from sys import exit
 from datetime import datetime
-import os
+import sys
+import pathlib
 
-appdata_path = os.getenv('APPDATA')
-final_path = appdata_path + '\\Pyweather\\config.json'
+
+def get_datadir() -> pathlib.Path:
+
+    """
+    Returns a parent directory path
+    where persistent application data can be stored.
+
+    # linux: ~/.local/share
+    # macOS: ~/Library/Application Support
+    # windows: C:/Users/<USER>/AppData/Roaming
+    """
+
+    home = pathlib.Path.home()
+
+    if sys.platform == "win32":
+        return home / "AppData/Roaming"
+    elif sys.platform == "linux":
+        return home / ".local/share"
+    elif sys.platform == "darwin":
+        return home / "Library/Application Support"
+
+# create your program's directory
+
+final_path = get_datadir() / "Pyweather"
+icon_path = pathlib.Path(__file__).parent.resolve() / "icon"
+
+try:
+    final_path.mkdir(parents=True)
+except FileExistsError:
+    pass
+
+final_path = final_path / "config.json"
 
 api_key = "b83bab83e668b70cbfc0b9cc6ebadc86"
 
@@ -63,7 +94,7 @@ def update(gui,s_city, s_temp, s_feels_like, s_pressure, s_humidity, s_wind, s_s
     gui['-wind-'].update(str(s_wind)+'m/h')
     gui['-humidity-'].update(str(s_humidity)+'%')
     gui['-city-'].update(s_city)
-    gui['-icon-'].update('icon\\'+s_icon+'.png')
+    gui['-icon-'].update(str(icon_path / (s_icon+'.png')))
     gui['-current_time-'].update(s_current_time)
 
 try:
@@ -147,7 +178,7 @@ column_info_layout = [
 
 column_image = [
     [sg.B('close', button_color=('#ff6161','#195240'), border_width=0, use_ttk_buttons=True, disabled_button_color=('#bbc9bb','#195240'), font=change_city_button_font)],
-    [sg.Image('icon\\'+icon+'.png', background_color='#99ccff', size=(175,175), key='-icon-')]
+    [sg.Image(str(icon_path / (icon+'.png')), background_color='#99ccff', size=(175,175), key='-icon-')]
 ]
 
 temp_font = ('Times New Roman', '75')
@@ -174,7 +205,7 @@ column_info_bold = [
 ]
 
 frame1 = [
-    [sg.Column(column_info_layout, background_color='#195240',size=(422,100)), sg.Col(column_image,background_color='#195240',size=(175,200))]
+    [sg.Column(column_info_layout, background_color='#195240',size=(427,100)), sg.Col(column_image,background_color='#195240',size=(175,200))]
 ]
 
 frame2 = [
@@ -184,7 +215,7 @@ frame2 = [
 frame3 = [
     [
         sg.T('Updated', background_color='#195240', text_color='#bbc9bb'),
-        sg.Text(current_time, background_color='#195240', text_color='#bbc9bb',size=(36,1), key='-current_time-'),
+        sg.Text(current_time, background_color='#195240', text_color='#bbc9bb',size=(28,1), key='-current_time-'),
         sg.B('Click here to change city', enable_events=True, font=change_city_button_font,button_color=('#bbc9bb','#195240'), border_width=0, use_ttk_buttons=True, disabled_button_color=('#bbc9bb','#195240'))
     ]
 ]
